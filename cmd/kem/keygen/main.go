@@ -5,8 +5,7 @@ import (
 "encoding/json"
 "flag"
 "io/ioutil"
-"math/big"
-"github.com/yourname/hppk/internal/kem"
+"github.com/sergelen02/HPPK_2/internal/kem"
 )
 
 
@@ -15,10 +14,20 @@ params := flag.String("params","./configs/params/level1.json","param json")
 outSk := flag.String("out","sk_kem.json","secret out")
 outPk := flag.String("pub","pk_kem.json","public out")
 flag.Parse()
-var cfg struct{ P_hex string `json:"p_hex"`; L uint `json:"L"`; K uint `json:"K"`; NoiseMin int64 `json:"noise_min"`; NoiseMax int64 `json:"noise_max"`}
+var cfg struct{
+P_hex string `json:"p_hex"`
+N int `json:"n"`
+Lambda int `json:"lambda"`
+M int `json:"m"`
+L uint `json:"L"`
+K uint `json:"K"`
+NoiseMin int64 `json:"noise_min"`
+NoiseMax int64 `json:"noise_max"`
+}
 json.Unmarshal(read(*params), &cfg)
-pp := kem.LoadParams(cfg.P_hex, cfg.L, cfg.K, cfg.NoiseMin, cfg.NoiseMax)
+pp := kem.LoadParams(cfg.P_hex, cfg.N, cfg.Lambda, cfg.M, cfg.L, cfg.K, cfg.NoiseMin, cfg.NoiseMax)
 sk, pk := kem.KeyGenKEM(pp)
+if sk==nil || pk==nil { panic("parameter L too small for homomorphism bound") }
 write(*outSk, pretty(sk)); write(*outPk, pretty(pk))
 }
 

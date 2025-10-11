@@ -3,7 +3,7 @@ package ds
 
 import (
 "math/big"
-"github.com/yourname/hppk/internal/core"
+"github.com/sergelen02/HPPK_2/internal/core"
 )
 
 

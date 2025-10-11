@@ -6,7 +6,7 @@ import (
 "flag"
 "fmt"
 "io/ioutil"
-"github.com/yourname/hppk/internal/ds"
+"github.com/sergelen02/HPPK_2/internal/ds"
 )
 
 

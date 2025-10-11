@@ -1,0 +1,101 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    // === KEM Key Generation ===
+    {
+      "name": "KEM KeyGen (debug)",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/kem/keygen",
+      "args": [
+        "-params", "${workspaceFolder}/configs/params/level1.json",
+        "-out",    "${workspaceFolder}/sk_kem.json",
+        "-pub",    "${workspaceFolder}/pk_kem.json"
+      ],
+      "cwd": "${workspaceFolder}",
+      "buildFlags": "-gcflags=all=-N -l"
+    },
+
+    // === KEM Encapsulation ===
+    {
+      "name": "KEM Encaps (debug)",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/kem/encaps",
+      "args": [
+        "-pk",        "${workspaceFolder}/pk_kem.json",
+        "-params",    "${workspaceFolder}/configs/params/level1.json",
+        "-out",       "${workspaceFolder}/ct.json",
+        "-noise-min", "1",
+        "-noise-max", "5"
+      ],
+      "cwd": "${workspaceFolder}",
+      "buildFlags": "-gcflags=all=-N -l"
+    },
+
+    // === KEM Decapsulation ===
+    {
+      "name": "KEM Decaps (debug)",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/kem/decaps",
+      "args": [
+        "-sk", "${workspaceFolder}/sk_kem.json",
+        "-ct", "${workspaceFolder}/ct.json"
+      ],
+      "cwd": "${workspaceFolder}",
+      "buildFlags": "-gcflags=all=-N -l"
+    },
+
+    // === DS KeyGen ===
+    {
+      "name": "DS KeyGen (debug)",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/ds/keygen",
+      "args": [
+        "-params", "${workspaceFolder}/configs/params/level1.json",
+        "-out",    "${workspaceFolder}/sk.json",
+        "-pub",    "${workspaceFolder}/pk.json"
+      ],
+      "cwd": "${workspaceFolder}",
+      "buildFlags": "-gcflags=all=-N -l"
+    },
+
+    // === DS Sign ===
+    {
+      "name": "DS Sign (debug)",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/ds/sign",
+      "args": [
+        "-sk",  "${workspaceFolder}/sk.json",
+        "-in",  "${workspaceFolder}/msg.txt",
+        "-out", "${workspaceFolder}/sig.json"
+      ],
+      "cwd": "${workspaceFolder}",
+      "buildFlags": "-gcflags=all=-N -l"
+    },
+
+    // === DS Verify ===
+    {
+      "name": "DS Verify (debug)",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/ds/verify",
+      "args": [
+        "-pk",  "${workspaceFolder}/pk.json",
+        "-in",  "${workspaceFolder}/msg.txt",
+        "-sig", "${workspaceFolder}/sig.json"
+      ],
+      "cwd": "${workspaceFolder}",
+      "buildFlags": "-gcflags=all=-N -l"
+    }
+  ]
+}
