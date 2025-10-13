@@ -2,8 +2,10 @@
 package main
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 	"math/big"
 	"os"
@@ -21,10 +23,11 @@ func main() {
 	// ---- flags ----
 	pkPath := flag.String("pk", "pk_kem.json", "public key JSON path")
 	outCT := flag.String("out", "ct.json", "ciphertext JSON output path")
+	keyOut := flag.String("key", "", "optional shared key output file (raw bytes)")
 	xStr := flag.String("x", "", "optional u ∈ Z_p (0x.. hex or decimal)")
 	noiseMin := flag.Int64("noise-min", 0, "noise min (overrides params if set)")
 	noiseMax := flag.Int64("noise-max", 0, "noise max (overrides params if set)")
-	paramsPath := flag.String("params", "", "optional params JSON (for noise_min/max if pk lacks)")
+	paramsPath := flag.String("params", "", "optional params JSON (provides noise_min/max if flags unset)")
 	flag.Parse()
 
 	// ---- load pk ----
@@ -39,27 +42,36 @@ func main() {
 			log.Fatalf("invalid -x: %q (use 0x.. or decimal)", *xStr)
 		}
 	} else {
-		x = nil // Encaps 내부에서 난수 선택한다고 가정
+		x = nil // Encaps 내부에서 난수 선택
 	}
 
-	// ---- noise range decide (flags > params) ----
+	// ---- noise range (flags > params > fallback) ----
 	var nmin, nmax int64
-	if *noiseMin != 0 || *noiseMax != 0 {
+	switch {
+	case *noiseMin != 0 || *noiseMax != 0:
 		nmin, nmax = *noiseMin, *noiseMax
-	} else if *paramsPath != "" {
+	case *paramsPath != "":
 		var par Params
 		mustReadJSON(*paramsPath, &par)
 		nmin, nmax = par.NoiseMin, par.NoiseMax
-	} else {
-		log.Fatal("noise range not provided: set -noise-min/-noise-max or provide -params with noise_min/noise_max")
+	default:
+		// 필요시 기본값(데모)
+		nmin, nmax = 1, 5
 	}
 
 	// ---- encapsulate ----
-	// Encaps는 (ct) 1개만 반환
-	ct := kem.Encaps(&pk, x, nmin, nmax)
+	ct, shared := kem.Encaps(&pk, x, nmin, nmax)
 
 	// ---- write outputs ----
 	mustWriteJSON(*outCT, ct)
+	if *keyOut != "" {
+		if err := os.WriteFile(*keyOut, shared, 0o600); err != nil {
+			log.Fatalf("write %s: %v", *keyOut, err)
+		}
+		fmt.Printf("shared key written to %s (%d bytes)\n", *keyOut, len(shared))
+	} else {
+		fmt.Printf("shared key (%d bytes): %s\n", len(shared), hex.EncodeToString(shared))
+	}
 }
 
 // ---------- helpers ----------

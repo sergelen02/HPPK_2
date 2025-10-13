@@ -74,8 +74,8 @@ func main() {
 		fmt.Printf("mu1 = %s\n", pk.Mu1.String())
 		fmt.Printf("nu0 = %s\n", pk.Nu0.String())
 		fmt.Printf("nu1 = %s\n", pk.Nu1.String())
-		fmt.Printf("s1p = %s (0x%s)\n", pk.S1p.String(), pk.S1p.Text(16))
-		fmt.Printf("s2p = %s (0x%s)\n", pk.S2p.String(), pk.S2p.Text(16))
+		fmt.Printf("s1 = %s (0x%s)\n", pk.S1.String(), pk.S1.Text(16))
+		fmt.Printf("s2 = %s (0x%s)\n", pk.S2.String(), pk.S2.Text(16))
 		fmt.Printf("K   = %d\n", pk.K)
 		fmt.Println("== Secret present: yes (not displayed)")
 	default:

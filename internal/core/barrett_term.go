@@ -2,17 +2,24 @@ package core
 
 import "math/big"
 
-// Stable BarrettTerm:
-// Compute (a * b) mod p using Barrett for modulus p (mu_B = floor(2^(2k)/p)).
-// 's' and 'mu' are ignored on purpose, because the values stored in pk (s1p,s2p, mu0,nu0,...) are
-// NOT actual moduli or Barrett-mus. This guarantees termination and correctness modulo p.
-func BarrettTerm(a, b, _s, _mu *big.Int, k uint, p *big.Int) *big.Int {
-	if a == nil || b == nil || p == nil {
-		panic("BarrettTerm: nil input")
-	}
-	// t = a*b
+// a*b를 s 로 Barrett 감소(필요 시 mu,k 사용), 그리고 (옵션) p로 최종 사상
+func BarrettTerm(a, b, s, mu *big.Int, k uint, p *big.Int) *big.Int {
 	t := new(big.Int).Mul(a, b)
-	// Use proper Barrett mu for modulus p
-	muB := BarrettMu(p, k)
-	return BarrettReduceStd(t, p, muB, k) // (t mod p), fixed-step, always terminates
+
+	var r *big.Int
+	if mu != nil && k != 0 {
+		r = BarrettReduce(t, s, mu, k)
+	} else {
+		// mu가 없거나 k==0이면 안전판으로
+		r = BarrettReduceStd(t, s, nil, 0)
+	}
+
+	// (옵션) F_p로 사상
+	if p != nil {
+		r.Mod(r, p)
+		if r.Sign() < 0 {
+			r.Add(r, p)
+		}
+	}
+	return r
 }
