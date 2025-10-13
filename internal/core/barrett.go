@@ -71,5 +71,10 @@ func BarrettReduceStd(x, p, mu *big.Int, k uint) *big.Int {
 
 // BarrettReduce kept as a compatibility name (now calls Std).
 func BarrettReduce(x, p, mu *big.Int, k uint) *big.Int {
-	return BarrettReduceStd(x, p, mu, k)
+    // k, mu를 주더라도 "확실한 종료"를 위해 직접 mod
+    r := new(big.Int).Mod(x, p)
+    if r.Sign() < 0 {
+        r.Add(r, p)
+    }
+    return r
 }

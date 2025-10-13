@@ -1,7 +1,6 @@
 {
   "version": "0.2.0",
   "configurations": [
-    // === KEM Key Generation ===
     {
       "name": "KEM KeyGen (debug)",
       "type": "go",
@@ -14,10 +13,8 @@
         "-pub",    "${workspaceFolder}/pk_kem.json"
       ],
       "cwd": "${workspaceFolder}",
-      "buildFlags": "-gcflags=all=-N -l"
+      "buildFlags": ["-gcflags=all=-N -l"]
     },
-
-    // === KEM Encapsulation ===
     {
       "name": "KEM Encaps (debug)",
       "type": "go",
@@ -32,10 +29,8 @@
         "-noise-max", "5"
       ],
       "cwd": "${workspaceFolder}",
-      "buildFlags": "-gcflags=all=-N -l"
+      "buildFlags": ["-gcflags=all=-N -l"]
     },
-
-    // === KEM Decapsulation ===
     {
       "name": "KEM Decaps (debug)",
       "type": "go",
@@ -47,10 +42,8 @@
         "-ct", "${workspaceFolder}/ct.json"
       ],
       "cwd": "${workspaceFolder}",
-      "buildFlags": "-gcflags=all=-N -l"
+      "buildFlags": ["-gcflags=all=-N -l"]
     },
-
-    // === DS KeyGen ===
     {
       "name": "DS KeyGen (debug)",
       "type": "go",
@@ -63,10 +56,8 @@
         "-pub",    "${workspaceFolder}/pk.json"
       ],
       "cwd": "${workspaceFolder}",
-      "buildFlags": "-gcflags=all=-N -l"
+      "buildFlags": ["-gcflags=all=-N -l"]
     },
-
-    // === DS Sign ===
     {
       "name": "DS Sign (debug)",
       "type": "go",
@@ -79,10 +70,8 @@
         "-out", "${workspaceFolder}/sig.json"
       ],
       "cwd": "${workspaceFolder}",
-      "buildFlags": "-gcflags=all=-N -l"
+      "buildFlags": ["-gcflags=all=-N -l"]
     },
-
-    // === DS Verify ===
     {
       "name": "DS Verify (debug)",
       "type": "go",
@@ -95,7 +84,8 @@
         "-sig", "${workspaceFolder}/sig.json"
       ],
       "cwd": "${workspaceFolder}",
-      "buildFlags": "-gcflags=all=-N -l"
+      "buildFlags": ["-gcflags=all=-N -l"]
     }
   ]
 }
+

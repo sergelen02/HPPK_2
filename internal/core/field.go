@@ -1,19 +1,27 @@
+// internal/core/field.go
 package core
 
 import "math/big"
 
 type Field struct{ P *big.Int }
 
+// p 유효성 검사하고 필드 생성
 func NewField(p *big.Int) *Field {
 	if p == nil || p.Sign() <= 0 {
 		panic("Field: invalid modulus p")
 	}
-	return &Field{P: new(big.Int).Set(p)} // <-- 여기 P 로!
+	return &Field{P: new(big.Int).Set(p)}
 }
 
+// 0 <= a mod p < p 로 정규화
 func (F *Field) Norm(a *big.Int) *big.Int {
+	if a == nil {
+		return new(big.Int)
+	}
 	z := new(big.Int).Mod(a, F.P)
-	if z.Sign() < 0 { z.Add(z, F.P) }
+	if z.Sign() < 0 {
+		z.Add(z, F.P)
+	}
 	return z
 }
 
@@ -32,8 +40,11 @@ func (F *Field) Mul(a, b *big.Int) *big.Int {
 	return F.Norm(z)
 }
 
+// a^{-1} mod p (없으면 nil)
 func (F *Field) Inv(a *big.Int) *big.Int {
 	z := new(big.Int).ModInverse(a, F.P)
-	if z == nil { return nil }
+	if z == nil {
+		return nil
+	}
 	return z
 }

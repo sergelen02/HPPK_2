@@ -1,0 +1,52 @@
+{
+  "p": 340282366920938463463374607431768211297,
+  "n": 3,
+  "lambda": 1,
+  "m": 2,
+  "L": 272,
+  "K": 256,
+  "Pp": [
+    [
+      "7fffd4cabfae64c48251e86f04765c7039ecab5aca52bbfb57946428d9075ddf70e5",
+      "7ffffe07175af8d3b4d908a9f91fa4d39171358547763e80675730cbb7a76f42c217"
+    ],
+    [
+      "7fffc88486a906f2f4edabf03ffce623ee64086090cfcb225840ef9bc5bcca609059",
+      "7fffcac1ae6f59b5150dd5afa98ea0afc61313baf871bd0199f99c1579aa9c0f3d8b"
+    ],
+    [
+      "7fffed920584ef20687de19085dbbe3ed51672d7e878f3653c3f510a6a0af31ac84f",
+      "7fffcc53d6146e07d8d8e0cbaa542d438e23fee715711b3ebdad7febe73fccaf14ab"
+    ],
+    [
+      "7fffce8a6a5859fbc27af586331f0539c0884e69762934a4b2d36d01d9f40285a341",
+      "7ffff2e0bb01c8a0dc3dbcd396d4fc1fe37736d6e4b9e8ee1702dfbfbee154aa1c53"
+    ],
+    [
+      "7fffeca4c3d761bb7bf512307bb6a3bc62de302d83d41632d5c7c7db8cf47c109825",
+      "7ffff5f0e7cd8b1acee2a518a6e7d0bc9504c9e3d50f58041998b27deee0cc86e36f"
+    ]
+  ],
+  "Qp": [
+    [
+      "7fffdc068a916dec404dec79112d2e162e2de0da28463e56ec3b7b4e32ba947ace6d",
+      "7ffe4f476f833d636a50efb63bd203b109345adadd24762a354f90bfd83f9944f609"
+    ],
+    [
+      "7fff27cf0319c5c56542755e487659ab5c06dacbafcb7a37eaf762dabfd5f972b729",
+      "7ffe49b706d81f878ba8fcd681952e66c6bb07ab2039bb1bd9e514c8a6bfcbbf1369"
+    ],
+    [
+      "7fffb91d3fabff2a82cb2b944118e6045f09103faf2a30d645f99d2e1a717f593697",
+      "7fff8ed6660bc2f5e07b1fbfb699a8b5b7511a79c2fe8442d5d69f755179b5ef10f9"
+    ],
+    [
+      "7ffe44faf5e39cd4f040c4ef0edd6e66eb97001a16b59fe55e3fd1a99e74045f357d",
+      "7ffe5ac4e9b041f491cbec8ddee03783095e3d7c7c0612e97b60753b115b8f7c14f1"
+    ],
+    [
+      "7ffee44e1ccc3d3855c2297ff074dcd8c39cb794e6c551ee3f4ca02f45e59b0b4c7d",
+      "7ffe238a1049132169fbc07de51ba4c028d7d5f8f3ff72421200d2d1d772fc840e43"
+    ]
+  ]
+}
