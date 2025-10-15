@@ -11,20 +11,33 @@ func Verify(pk *Public, msg []byte, sig *Signature) bool {
 	Fp := core.NewField(P)
 	x := core.HashToX(P, msg)
 
-	F := new(big.Int).SetBytes(sig.F) // f(x) mod p
-	H := new(big.Int).SetBytes(sig.H) // h(x) mod p
+	// read F,H,U,V from signature
+	F := new(big.Int).SetBytes(sig.F)
+	H := new(big.Int).SetBytes(sig.H)
+	U := new(big.Int).SetBytes(sig.U)
+	V := new(big.Int).SetBytes(sig.V)
 
-	// U(H) = (p0*H) + (p1*H)*x  over F_p
-	U0 := new(big.Int).Mod(new(big.Int).Mul(pk.Pprime0, H), P)
-	U1 := new(big.Int).Mod(new(big.Int).Mul(pk.Pprime1, H), P)
+	// recompute alpha/beta
+	alpha := new(big.Int).Add(pk.Pprime0, new(big.Int).Mul(pk.Pprime1, x))
+	alpha.Mod(alpha, P)
+	if alpha.Sign() < 0 { alpha.Add(alpha, P) }
 
-	// V(F) = (q0*F) + (q1*F)*x  over F_p
-	V0 := new(big.Int).Mod(new(big.Int).Mul(pk.Qprime0, F), P)
-	V1 := new(big.Int).Mod(new(big.Int).Mul(pk.Qprime1, F), P)
+	beta := new(big.Int).Add(pk.Qprime0, new(big.Int).Mul(pk.Qprime1, x))
+	beta.Mod(beta, P)
+	if beta.Sign() < 0 { beta.Add(beta, P) }
 
-	left  := Fp.Add(V0, Fp.Mul(V1, x))
-	right := Fp.Add(U0, Fp.Mul(U1, x))
+	// recompute expectedU and expectedV from F and H
+	expectedU := new(big.Int).Mod(new(big.Int).Mul(alpha, H), P)
+	expectedV := new(big.Int).Mod(new(big.Int).Mul(beta, F), P)
 
-	return left.Cmp(right) == 0
+	// check that provided U and V match recomputed values
+	if expectedU.Cmp(U) != 0 { return false }
+	if expectedV.Cmp(V) != 0 { return false }
+
+	// finally check relation U == V (redundant if above both match, but explicit)
+	if U.Cmp(V) != 0 { return false }
+
+	// All checks passed
+	_ = Fp // (Fp available if more checks needed)
+	return true
 }
-
