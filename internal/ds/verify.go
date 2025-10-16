@@ -7,17 +7,23 @@ import (
 )
 
 func Verify(pk *Public, msg []byte, sig *Signature) bool {
+	if pk == nil || pk.P == nil || pk.P.Sign() == 0 || sig == nil {
+		return false
+	}
+	if pk.Pprime0 == nil || pk.Pprime1 == nil || pk.Qprime0 == 
+	nil || pk.Qprime1 == nil {
+		return false
+	}
+
 	P := pk.P
-	Fp := core.NewField(P)
 	x := core.HashToX(P, msg)
 
-	// read F,H,U,V from signature
-	F := new(big.Int).SetBytes(sig.F)
-	H := new(big.Int).SetBytes(sig.H)
-	U := new(big.Int).SetBytes(sig.U)
-	V := new(big.Int).SetBytes(sig.V)
+	F := new(big.Int).SetBytes(sig.F) // F mod p
+	H := new(big.Int).SetBytes(sig.H) // H mod p
+	U := new(big.Int).SetBytes(sig.U) // claimed α·H
+	V := new(big.Int).SetBytes(sig.V) // claimed β·F
 
-	// recompute alpha/beta
+	// α, β (mod p)
 	alpha := new(big.Int).Add(pk.Pprime0, new(big.Int).Mul(pk.Pprime1, x))
 	alpha.Mod(alpha, P)
 	if alpha.Sign() < 0 { alpha.Add(alpha, P) }
@@ -26,18 +32,12 @@ func Verify(pk *Public, msg []byte, sig *Signature) bool {
 	beta.Mod(beta, P)
 	if beta.Sign() < 0 { beta.Add(beta, P) }
 
-	// recompute expectedU and expectedV from F and H
-	expectedU := new(big.Int).Mod(new(big.Int).Mul(alpha, H), P)
-	expectedV := new(big.Int).Mod(new(big.Int).Mul(beta, F), P)
+	// 기대값
+	expU := new(big.Int).Mod(new(big.Int).Mul(alpha, H), P)
+	expV := new(big.Int).Mod(new(big.Int).Mul(beta,  F), P)
 
-	// check that provided U and V match recomputed values
-	if expectedU.Cmp(U) != 0 { return false }
-	if expectedV.Cmp(V) != 0 { return false }
-
-	// finally check relation U == V (redundant if above both match, but explicit)
-	if U.Cmp(V) != 0 { return false }
-
-	// All checks passed
-	_ = Fp // (Fp available if more checks needed)
+	// 각각 일치하는지만 확인
+	if expU.Cmp(U) != 0 { return false }
+	if expV.Cmp(V) != 0 { return false }
 	return true
 }
