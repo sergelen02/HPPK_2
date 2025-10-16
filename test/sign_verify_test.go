@@ -17,16 +17,19 @@ func TestSignVerify(t *testing.T) {
 	}
 	F := core.NewField(&P)
 
-	const L uint = 272 // 하한(≈260) 이상으로 설정
+	const L uint = 272 // (≈260) 이상
 	const K uint = 256
 
 	sk, pk := ds.KeyGenDS(F, L, K)
 
 	msg := []byte("hello quantum")
-	sig, err := ds.Sign(sk, msg)
+
+	// 공개키를 넘기는 새 API 사용
+	sig, err := ds.SignWithPK(sk, pk, msg)
 	if err != nil {
 		t.Fatalf("sign failed: %v", err)
 	}
+
 	if !ds.Verify(pk, msg, sig) {
 		t.Fatal("verify failed")
 	}
