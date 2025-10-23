@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hppk-geth
+  namespace: devnet
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: hppk-geth } }
+  template:
+    metadata: { labels: { app: hppk-geth } }
+    spec:
+      containers:
+      - name: geth
+        image: hppkacr23119.azurecr.io/hppk-geth:phaseA
+        args:
+          - "--dev"
+          - "--http"
+          - "--http.api"
+          - "eth,net,web3,debug,txpool"
+          - "--metrics"
+        ports:
+        - containerPort: 8545
+        - containerPort: 6060   # pprof/metrics(옵션)
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: geth-rpc
+  namespace: devnet
+spec:
+  selector: { app: hppk-geth }
+  ports:
+  - name: rpc
+    port: 8545
+    targetPort: 8545
+  type: LoadBalancer
