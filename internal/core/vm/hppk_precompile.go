@@ -1,86 +1,119 @@
+// internal/core/vm/hppk_precompile.go
+// HPPK 서명 검증 프리컴파일(verify only).
+// 입력 ABI: [6*4바이트 길이헤더] + F|H|U|V|pkJSON|msg
+//   - order: sigFLen, sigHLen, sigULen, sigVLen, pkLen, msgLen (각각 big-endian uint32)
+//   - 그 다음 바이트들은 위 순서대로 이어붙임
+//
+// 출력: 32바이트(bool) - 마지막 바이트 0x01이면 true, 그 외 false
 package vm
 
 import (
+	"encoding/binary"
+	"encoding/json"
 	"errors"
-	"math/big"
+	"fmt"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/params"
-	ds "github.com/sergelen02/HPPK_DS/internal/ds"
+	"github.com/sergelen02/HPPK_2/internal/ds"
 )
 
 var (
-	// 프리컴파일 고정 주소
-	HPPKAddress = common.HexToAddress("0x000000000000000000000000000000000000000b")
-
-	// 가스 모델: base + perByte * (sig+pk)
-	hppkGasBase    = uint64(3000) // 초기치: ecrecover 참고
-	hppkGasPerByte = uint64(12)   // 초기치: 실측 후 보정 예정
+	ErrInputTooShort  = errors.New("hppk-precompile: input too short")
+	ErrMalformed      = errors.New("hppk-precompile: malformed input")
+	ErrLengthOverflow = errors.New("hppk-precompile: length overflow")
+	ErrVerifyFailed   = errors.New("hppk-precompile: verify failed")
 )
 
-type HPPKVerify struct{}
+// 보수적 가스 정책(실험 후 조정 권장)
+const (
+	gasBase       = uint64(600)
+	gasPerByte    = uint64(8)
+	gasMinSuccess = uint64(1500)
+	gasMinFail    = uint64(800)
+	maxInputBytes = 1 << 24 // 16MiB 방어적 상한
+	outputLen     = 32
+)
 
-func (c *HPPKVerify) RequiredGas(input []byte) uint64 {
-	// 입력: ABI-encoded (bytes32 msgHash, bytes sig, bytes pubkey)
-	// 안전: 최소 길이 체크 후 선형비례
-	if len(input) < 32 { // 너무 짧으면 최소 가스
-		return hppkGasBase
+type HPPKVerifyPrecompile struct{}
+
+// RequiredGas: 전체 입력 길이에 선형 비례
+func (HPPKVerifyPrecompile) RequiredGas(input []byte) uint64 {
+	n := uint64(len(input))
+	est := gasBase + n*gasPerByte
+	if est < gasMinFail {
+		return gasMinFail
 	}
-	// 길이를 대략 사용 (정확한 ABI 파싱은 Run에서)
-	return hppkGasBase + hppkGasPerByte*uint64(len(input))
+	return est
 }
 
-func (c *HPPKVerify) Run(evm *EVM, input []byte, _ bool) ([]byte, error) {
-	// 1) ABI decoding
-	msgHash, sig, pub, err := decodeHPPKArgs(input)
-	if err != nil {
-		return abiBool(false), nil // 포맷오류도 false 반환
+// Run: 파싱 → ds.Verify 호출 → 32바이트 bool 반환
+func (HPPKVerifyPrecompile) Run(input []byte) ([]byte, error) {
+	ok, err := runVerify(input)
+	out := make([]byte, outputLen)
+	if ok {
+		out[outputLen-1] = 1
+		return out, nil
+	}
+	return out, err
+}
+
+func runVerify(input []byte) (bool, error) {
+	if len(input) < 24 { // 6개 길이헤더 * 4바이트
+		return false, ErrInputTooShort
+	}
+	if len(input) > maxInputBytes {
+		return false, fmt.Errorf("hppk-precompile: input too large (%d)", len(input))
 	}
 
-	// 2) DS Verify 호출 (Params는 내부에서 안전 디폴트 사용 또는 체인 파라미터로 전달)
-	pp := levelIDefaultParams()
-	ok := verifyHPPK(pp, msgHash, sig, pub)
-	return abiBool(ok), nil
-}
+	// 길이 헤더
+	fLen := int(binary.BigEndian.Uint32(input[0:4]))
+	hLen := int(binary.BigEndian.Uint32(input[4:8]))
+	uLen := int(binary.BigEndian.Uint32(input[8:12]))
+	vLen := int(binary.BigEndian.Uint32(input[12:16]))
+	pkLen := int(binary.BigEndian.Uint32(input[16:20]))
+	msgLen := int(binary.BigEndian.Uint32(input[20:24]))
 
-// ---- 내부 유틸 (스텁/스켈레톤; 실제 구현에서 바꿔 넣기) ----
-
-func decodeHPPKArgs(b []byte) (msg32 [32]byte, sig []byte, pub []byte, err error) {
-	// 간단 파서(스켈레톤): 실제론 go-ethereum/accounts/abi 로 Unpack 권장
-	if len(b) < 32 {
-		return msg32, nil, nil, errors.New("short input")
+	for _, x := range []int{fLen, hLen, uLen, vLen, pkLen, msgLen} {
+		if x < 0 {
+			return false, ErrLengthOverflow
+		}
 	}
-	copy(msg32[:], b[:32])
-	// 이후 슬라이스는 프로젝트 상황에 맞게 포맷 정의
-	// 예: b[32:32+sigLen] -> sig, 나머지 -> pub
-	// 여기서는 데모로 반반 분할
-	half := (len(b) - 32) / 2
-	sig = append([]byte(nil), b[32:32+half]...)
-	pub = append([]byte(nil), b[32+half:]...)
-	return
-}
 
-func levelIDefaultParams() *ds.Params {
-	// 당신 레포의 Params 필드에 맞게 세팅
-	// 최소: p, L, K, R 등
-	// 없으면 ds 쪽에 LevelI() 같은 헬퍼를 만들어 import
-	return &ds.Params{} // TODO: 실제 필드 채우기
-}
-
-func verifyHPPK(pp *ds.Params, msg32 [32]byte, sig, pub []byte) bool {
-	// 해시→메시지 변환 규칙은 DS 구현과 동일하게
-	s := &ds.Signature{}
-	pk := &ds.PublicKey{} // pub로부터 복원 규약을 합의 (고정길이 직렬화 권장)
-	return ds.Verify(pp, pk, s, msg32[:])
-}
-
-// ABI bool (32바이트)
-func abiBool(b bool) []byte {
-	out := make([]byte, 32)
-	if b {
-		out[31] = 1
+	total := 24 + fLen + hLen + uLen + vLen + pkLen + msgLen
+	if total != len(input) {
+		return false, ErrMalformed
 	}
-	return out
-}
 
-var _ PrecompiledContract = &HPPKVerify{}
+	pos := 24
+	F := input[pos : pos+fLen]
+	pos += fLen
+	H := input[pos : pos+hLen]
+	pos += hLen
+	U := input[pos : pos+uLen]
+	pos += uLen
+	V := input[pos : pos+vLen]
+	pos += vLen
+	pkJSON := input[pos : pos+pkLen]
+	pos += pkLen
+	msg := input[pos : pos+msgLen]
+
+	// 공개키(JSON) → ds.Public
+	var pk ds.Public
+	if err := json.Unmarshal(pkJSON, &pk); err != nil {
+		return false, fmt.Errorf("unmarshal public key: %w", err)
+	}
+
+	// 시그니처: 고정 길이 직렬화 규약을 그대로 사용
+	sig := &ds.Signature{
+		F: append([]byte(nil), F...),
+		H: append([]byte(nil), H...),
+		U: append([]byte(nil), U...),
+		V: append([]byte(nil), V...),
+	}
+
+	// 실제 검증
+	ok := ds.Verify(&pk, msg, sig)
+	if !ok {
+		return false, ErrVerifyFailed
+	}
+	return true, nil
+}
