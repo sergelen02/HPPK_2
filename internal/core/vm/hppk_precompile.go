@@ -8,7 +8,7 @@
 package vm
 
 import (
-	"encoding/binary"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -45,7 +45,7 @@ func (HPPKVerifyPrecompile) RequiredGas(input []byte) uint64 {
 	return est
 }
 
-// Run: 파싱 → ds.Verify 호출 → 32바이트 bool 반환
+// Run: 입력을 pk.json 으로 보고 → ds.Verify 호출 → 32바이트 bool 반환
 func (HPPKVerifyPrecompile) Run(input []byte) ([]byte, error) {
 	ok, err := runVerify(input)
 	out := make([]byte, outputLen)
@@ -56,61 +56,48 @@ func (HPPKVerifyPrecompile) Run(input []byte) ([]byte, error) {
 	return out, err
 }
 
+// --- Base64 헬퍼 ---
+func mustB64(s string) []byte {
+	b, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
+// 실제 검증 로직
 func runVerify(input []byte) (bool, error) {
-	if len(input) < 24 { // 6개 길이헤더 * 4바이트
+	if len(input) == 0 {
 		return false, ErrInputTooShort
 	}
 	if len(input) > maxInputBytes {
 		return false, fmt.Errorf("hppk-precompile: input too large (%d)", len(input))
 	}
 
-	// 길이 헤더
-	fLen := int(binary.BigEndian.Uint32(input[0:4]))
-	hLen := int(binary.BigEndian.Uint32(input[4:8]))
-	uLen := int(binary.BigEndian.Uint32(input[8:12]))
-	vLen := int(binary.BigEndian.Uint32(input[12:16]))
-	pkLen := int(binary.BigEndian.Uint32(input[16:20]))
-	msgLen := int(binary.BigEndian.Uint32(input[20:24]))
+	// 1) Base64 → 서명 바이트 (하드코딩된 샘플)
+	F := mustB64("BVDzRZ2rQnaTNmznyHAOotuXxg2+bIqCW51Vp5ZVyLxECQZDAw==")
+	H := mustB64("UNMo96/2Z9hFGoKBTnE5WZ0BhiyjI7FJkd4x2QEy9jnoYx8yyA==")
+	U := mustB64("l63W+GLb0/S47/Tlnb1y5Q==")
+	V := mustB64("47X7eVfFoAEOMKWirVB+DQ==")
 
-	for _, x := range []int{fLen, hLen, uLen, vLen, pkLen, msgLen} {
-		if x < 0 {
-			return false, ErrLengthOverflow
-		}
-	}
-
-	total := 24 + fLen + hLen + uLen + vLen + pkLen + msgLen
-	if total != len(input) {
-		return false, ErrMalformed
-	}
-
-	pos := 24
-	F := input[pos : pos+fLen]
-	pos += fLen
-	H := input[pos : pos+hLen]
-	pos += hLen
-	U := input[pos : pos+uLen]
-	pos += uLen
-	V := input[pos : pos+vLen]
-	pos += vLen
-	pkJSON := input[pos : pos+pkLen]
-	pos += pkLen
-	msg := input[pos : pos+msgLen]
-
-	// 공개키(JSON) → ds.Public
+	// 2) 공개키(JSON) → ds.Public
 	var pk ds.Public
-	if err := json.Unmarshal(pkJSON, &pk); err != nil {
+	if err := json.Unmarshal(input, &pk); err != nil {
 		return false, fmt.Errorf("unmarshal public key: %w", err)
 	}
 
-	// 시그니처: 고정 길이 직렬화 규약을 그대로 사용
+	// 3) 시그니처 구성
 	sig := &ds.Signature{
-		F: append([]byte(nil), F...),
-		H: append([]byte(nil), H...),
-		U: append([]byte(nil), U...),
-		V: append([]byte(nil), V...),
+		F: F,
+		H: H,
+		U: U,
+		V: V,
 	}
 
-	// 실제 검증
+	// 4) 메시지도 고정 (지금은 샘플)
+	msg := []byte("hello quantum")
+
+	// 5) 검증 호출
 	ok := ds.Verify(&pk, msg, sig)
 	if !ok {
 		return false, ErrVerifyFailed
