@@ -1,31 +1,36 @@
 package ds
 
-import "testing"
+import (
+	"math/big"
+	"testing"
 
-// 필요시 실제 Params 생성기로 바꾸세요. (예: LevelI(), NewParams(...))
-// KeyGen이 내부에서 pp 필드를 세팅한다면 nil도 허용될 수 있습니다.
-func testParams() *Params { return nil }
+	"github.com/sergelen02/HPPK_2/internal/core"
+)
+
+func testField(t *testing.T) *core.Field {
+	// TODO: 아래 한 줄만 "레포에 실제 존재하는 Field 생성 함수"로 교체
+	// 예: core.NewField(big.NewInt(65537)), core.NewField(...), core.NewFieldFromParams(...)
+
+	F := core.NewField(big.NewInt(65537)) // <- 예시. 너 레포에 맞게 바꿔야 함.
+	if F == nil {
+		t.Fatal("core.Field is nil")
+	}
+	return F
+}
 
 func Test_Golden_SmallP(t *testing.T) {
-	pp := testParams()
+	F := testField(t)
 
-	// 레포 실제 시그니처: KeyGen(pp, n, m, lambda) -> (sk, pk, err)
-	sk, pk, err := KeyGen(pp, 1, 1, 1)
-	if err != nil {
-		t.Fatalf("KeyGen error: %v", err)
-	}
+	sk, pk := KeyGenDS(F, 2, 1)
 
 	msg := []byte("abc")
 
-	// 레포 실제 시그니처: Sign(pp, sk, msg) -> (sig, extra, err)  (extra는 테스트에서 무시)
-	sig, _, err := Sign(pp, sk, msg)
+	sig, err := SignWithPK(sk, pk, msg)
 	if err != nil {
-		t.Fatalf("Sign error: %v", err)
+		t.Fatalf("SignWithPK error: %v", err)
 	}
 
-	// 레포 실제 시그니처: Verify(pp, pk, sig, msg) -> bool
-	ok := Verify(pp, pk, sig, msg)
-	if !ok {
+	if ok := Verify(pk, msg, sig); !ok {
 		t.Fatal("verify=false")
 	}
 }

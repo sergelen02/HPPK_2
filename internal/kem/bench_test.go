@@ -11,8 +11,6 @@ import (
 	"github.com/sergelen02/HPPK_2/internal/kem"
 )
 
-// 테스트용 파라미터를 바이너리에 포함
-//go:embed testdata/level1.json
 var testFS embed.FS
 
 type kemParams struct {

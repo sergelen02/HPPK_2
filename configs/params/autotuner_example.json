@@ -1,0 +1,11 @@
+{
+  "security_level": "III",
+  "log2_p": 96,
+  "m": 1,
+  "lambda": 1,
+  "scheme": "BOTH",
+  "hash": "SHA-384",
+  "segments": "auto",
+  "pk_exposes_mu_nu": true,
+  "margin_bits": 16
+}

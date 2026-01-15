@@ -1,5 +1,5 @@
 // internal/ds/sign_verify_test.go
-package ds_test
+package main
 
 import (
 	"math/big"
