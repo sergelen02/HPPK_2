@@ -1,0 +1,12 @@
+{
+  "name": "level5",
+  "p": "128",
+  "n": 3,
+  "lambda": 1,
+  "m": 2,
+  "L": 292, 
+  "K": 324,
+  "noise_min": 1,
+  "noise_max": 5,
+  "hash": "SHA-512"
+}

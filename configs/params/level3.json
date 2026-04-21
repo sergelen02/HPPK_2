@@ -1,12 +1,12 @@
 {
- "name": "level1",
+  "name": "level3",
   "p": "96",
-  "n": 1,
+  "n": 2,
   "lambda": 1,
   "m": 2,
-  "L": 144, 
-  "K": 176,
+  "L": 208, 
+  "K": 248,
   "noise_min": 1,
   "noise_max": 5,
-  "hash": "SHA-256"
+  "hash": "SHA-384"
 }
