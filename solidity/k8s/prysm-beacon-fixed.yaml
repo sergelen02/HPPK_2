@@ -1,0 +1,160 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: prysm-jwt
+  namespace: default
+type: Opaque
+stringData:
+  jwt.hex: "1cbc3f44bda4f9b2daed20891885dd5e333ab03ff18f998c035a93301280caaa"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prysm-config
+  namespace: default
+data:
+  config.yml: |
+    CONFIG_NAME: "devnet"
+    PRESET_BASE: "interop"
+
+    MIN_GENESIS_ACTIVE_VALIDATOR_COUNT: 64
+    MIN_GENESIS_TIME: 0
+    GENESIS_DELAY: 20
+
+    SECONDS_PER_SLOT: 12
+    SECONDS_PER_ETH1_BLOCK: 14
+
+    ETH1_FOLLOW_DISTANCE: 1
+
+    DEPOSIT_CHAIN_ID: 1337
+    DEPOSIT_NETWORK_ID: 1337
+    DEPOSIT_CONTRACT_ADDRESS: 0x4242424242424242424242424242424242424242
+
+    TERMINAL_TOTAL_DIFFICULTY: 0
+    TERMINAL_BLOCK_HASH: 0x0000000000000000000000000000000000000000000000000000000000000000
+    TERMINAL_BLOCK_HASH_ACTIVATION_EPOCH: 18446744073709551615
+
+    GENESIS_FORK_VERSION: 0x10000001
+    ALTAIR_FORK_VERSION: 0x20000001
+    BELLATRIX_FORK_VERSION: 0x30000001
+    CAPELLA_FORK_VERSION: 0x40000001
+    DENEB_FORK_VERSION: 0x50000001
+    ELECTRA_FORK_VERSION: 0x51000001
+    FULU_FORK_VERSION: 0x52000001
+    GLOAS_FORK_VERSION: 0x53000001
+
+    ALTAIR_FORK_EPOCH: 0
+    BELLATRIX_FORK_EPOCH: 0
+    CAPELLA_FORK_EPOCH: 0
+    DENEB_FORK_EPOCH: 0
+    ELECTRA_FORK_EPOCH: 100000000
+    FULU_FORK_EPOCH: 100000001
+    GLOAS_FORK_EPOCH: 100000002
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prysm-beacon
+  namespace: default
+spec:
+  serviceName: prysm-beacon
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prysm-beacon
+  template:
+    metadata:
+      labels:
+        app: prysm-beacon
+    spec:
+      initContainers:
+        - name: load-genesis
+          image: hppkacr123.azurecr.io/prysm-genesis:v1
+          command: ["/bin/sh", "-c"]
+          args:
+            - cp /seed/genesis.ssz /consensus/genesis.ssz && ls -lh /consensus/genesis.ssz
+          volumeMounts:
+            - name: consensus-seed
+              mountPath: /consensus
+
+      containers:
+        - name: beacon-chain
+          image: hppkacr123.azurecr.io/prysm-beacon:v7.1.2
+          imagePullPolicy: IfNotPresent
+          command:
+            - /usr/local/bin/beacon-chain
+          args:
+            - --datadir=/data/beacondata
+            - --genesis-state=/consensus/genesis.ssz
+            - --execution-endpoint=http://geth-execution:8551
+            - --jwt-secret=/jwt/jwt.hex
+            - --rpc-host=0.0.0.0
+            - --rpc-port=4000
+            - --grpc-gateway-host=0.0.0.0
+            - --grpc-gateway-port=3500
+            - --minimum-peers-per-subnet=0
+            - --min-sync-peers=0
+            - --suggested-fee-recipient=0x867e430d25f8a8498feE5ECB6C6a7B998B9b189D
+            - --accept-terms-of-use
+          ports:
+            - name: rpc
+              containerPort: 4000
+            - name: gateway
+              containerPort: 3500
+          volumeMounts:
+            - name: beacon-data
+              mountPath: /data
+            - name: jwt-secret
+              mountPath: /jwt
+              readOnly: true
+            - name: prysm-config
+              mountPath: /config
+              readOnly: true
+            - name: consensus-seed
+              mountPath: /consensus
+              readOnly: true
+          resources:
+            requests:
+              cpu: "1"
+              memory: "2Gi"
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+
+      volumes:
+        - name: jwt-secret
+          secret:
+            secretName: prysm-jwt
+        - name: prysm-config
+          configMap:
+            name: prysm-config
+        - name: consensus-seed
+          emptyDir: {}
+
+  volumeClaimTemplates:
+    - metadata:
+        name: beacon-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: managed-csi
+        resources:
+          requests:
+            storage: 50Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prysm-beacon
+  namespace: default
+spec:
+  selector:
+    app: prysm-beacon
+  type: ClusterIP
+  ports:
+    - name: rpc
+      port: 4000
+      targetPort: 4000
+    - name: gateway
+      port: 3500
+      targetPort: 3500

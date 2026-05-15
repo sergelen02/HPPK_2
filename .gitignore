@@ -1,0 +1,22 @@
+# build
+*.exe
+*.out
+*.test
+bin/
+
+# backup
+*.bak
+*.save
+
+# experiment outputs
+results/
+dataset/
+
+# vscode
+.vscode/
+
+# solidity libraries
+solidity/lib/
+
+# env
+.env

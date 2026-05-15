@@ -1,24 +1,31 @@
 package ds
 
-import "testing"
+import (
+	"math/big"
+	"testing"
 
-func Test_LevelI_Deterministic(t *testing.T) {
-	pp := testParams()
+	"github.com/sergelen02/HPPK_2/internal/core"
+)
 
-	sk, pk, err := KeyGen(pp, 1, 1, 1)
-	if err != nil {
-		t.Fatalf("KeyGen error: %v", err)
+func Test_LevelI_SignVerify(t *testing.T) {
+	F := core.NewField(big.NewInt(65537))
+
+	sk, pk := KeyGenDS(F, uint(2), uint(1))
+	if sk == nil || pk == nil {
+		t.Fatal("KeyGenDS returned nil")
 	}
 
-	msg := []byte("hello-phaseA")
+	msg := []byte("level1")
 
-	sig, _, err := Sign(pp, sk, msg)
+	sig, err := SignWithPK(sk, pk, msg)
 	if err != nil {
-		t.Fatalf("Sign error: %v", err)
+		t.Fatalf("SignWithPK error: %v", err)
+	}
+	if sig == nil {
+		t.Fatal("SignWithPK returned nil signature")
 	}
 
-	ok := Verify(pp, pk, sig, msg)
-	if !ok {
+	if ok := Verify(pk, msg, sig); !ok {
 		t.Fatal("verify=false")
 	}
 }

@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: geth-jwt
+type: Opaque
+stringData:
+  jwt.hex: "1cbc3f44bda4f9b2daed20891885dd5e333ab03ff18f998c035a93301280caaa"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: geth-execution
+spec:
+  serviceName: geth
+  replicas: 1
+  selector:
+    matchLabels:
+      app: geth-execution
+  template:
+    metadata:
+      labels:
+        app: geth-execution
+    spec:
+      containers:
+        - name: geth
+          image: hppkacr123.azurecr.io/hppk-geth:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - /usr/local/bin/geth
+          args:
+            - --datadir=/data/gethdata
+            - --networkid=1337
+            - --syncmode=full
+            - --http
+            - --http.addr=0.0.0.0
+            - --http.port=8545
+            - --http.api=eth,net,web3,debug,txpool,engine,admin
+            - --ws
+            - --ws.addr=0.0.0.0
+            - --ws.port=8546
+            - --ws.api=eth,net,web3
+            - --authrpc.addr=*
+            - --authrpc.port=8551
+            - --authrpc.vhosts=*
+            - --authrpc.jwtsecret=/jwt/jwt.hex
+            - --nodiscover
+            - --maxpeers=0
+          ports:
+            - containerPort: 8545
+              name: http-rpc
+            - containerPort: 8546
+              name: ws-rpc
+            - containerPort: 8551
+              name: authrpc
+          volumeMounts:
+            - name: geth-data
+              mountPath: /data
+            - name: jwt-secret
+              mountPath: /jwt
+              readOnly: true
+          resources:
+            requests:
+              cpu: "1"
+              memory: "2Gi"
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+      volumes:
+        - name: jwt-secret
+          secret:
+            secretName: geth-jwt
+  volumeClaimTemplates:
+    - metadata:
+        name: geth-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: managed-csi
+        resources:
+          requests:
+            storage: 50Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: geth-execution
+spec:
+  selector:
+    app: geth-execution
+  type: ClusterIP
+  ports:
+    - name: http-rpc
+      port: 8545
+      targetPort: 8545
+    - name: ws-rpc
+      port: 8546
+      targetPort: 8546
+    - name: authrpc
+      port: 8551
+      targetPort: 8551

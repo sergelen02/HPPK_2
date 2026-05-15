@@ -2,8 +2,8 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
-import "../HPPKPrecompile.sol";
-import "../Wallet4337.sol";
+import "../contracts/HPPK_Precompile.sol";
+import "../contracts/wallet4337.sol";
 
 contract HPPKTest is Test {
     Wallet4337 w;

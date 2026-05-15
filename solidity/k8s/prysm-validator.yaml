@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prysm-validator
+spec:
+  serviceName: prysm-validator
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prysm-validator
+  template:
+    metadata:
+      labels:
+        app: prysm-validator
+    spec:
+      containers:
+        - name: validator
+          image: hppkacr123.azurecr.io/prysm-validator:v7.1.2
+          imagePullPolicy: IfNotPresent
+          command:
+            - /usr/local/bin/validator
+          args:
+            - --datadir=/data/validatordata
+            - --beacon-rpc-provider=prysm-beacon:4000
+            - --accept-terms-of-use
+            - --interop-num-validators=8
+            - --interop-start-index=0
+          volumeMounts:
+            - name: validator-data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+  volumeClaimTemplates:
+    - metadata:
+        name: validator-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: managed-csi
+        resources:
+          requests:
+            storage: 20Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prysm-validator
+spec:
+  selector:
+    app: prysm-validator
+  type: ClusterIP
+  ports:
+    - name: metrics
+      port: 8080
+      targetPort: 8080
