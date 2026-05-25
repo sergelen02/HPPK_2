@@ -1,10 +1,10 @@
 {
-  "p": "0xFFFFFFFFFFFFFFC5",
+  "p": "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEF",
   "n": 1,
   "lambda": 1,
   "m": 1,
-  "L": 144,
-  "K": 176,
+  "L": 208,
+  "K": 240,
   "noise_min": 1,
   "noise_max": 5
 }

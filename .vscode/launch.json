@@ -2,90 +2,171 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "KEM KeyGen (debug)",
-      "type": "go",
-      "request": "launch",
-      "mode": "debug",
-      "program": "${workspaceFolder}/cmd/kem/keygen",
-      "args": [
-        "-params", "${workspaceFolder}/configs/params/level1.json",
-        "-out",    "${workspaceFolder}/sk_kem.json",
-        "-pub",    "${workspaceFolder}/pk_kem.json"
-      ],
-      "cwd": "${workspaceFolder}",
-      "buildFlags": ["-gcflags=all=-N -l"]
-    },
-    {
-      "name": "KEM Encaps (debug)",
-      "type": "go",
-      "request": "launch",
-      "mode": "debug",
-      "program": "${workspaceFolder}/cmd/kem/encaps",
-      "args": [
-        "-pk",        "${workspaceFolder}/pk_kem.json",
-        "-params",    "${workspaceFolder}/configs/params/level1.json",
-        "-out",       "${workspaceFolder}/ct.json",
-        "-noise-min", "1",
-        "-noise-max", "5"
-      ],
-      "cwd": "${workspaceFolder}",
-      "buildFlags": ["-gcflags=all=-N -l"]
-    },
-    {
-      "name": "KEM Decaps (debug)",
-      "type": "go",
-      "request": "launch",
-      "mode": "debug",
-      "program": "${workspaceFolder}/cmd/kem/decaps",
-      "args": [
-        "-sk", "${workspaceFolder}/sk_kem.json",
-        "-ct", "${workspaceFolder}/ct.json"
-      ],
-      "cwd": "${workspaceFolder}",
-      "buildFlags": ["-gcflags=all=-N -l"]
-    },
-    {
-      "name": "DS KeyGen (debug)",
+      "name": "DS KeyGen L1",
       "type": "go",
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceFolder}/cmd/ds/keygen",
-      "args": [
-        "-params", "${workspaceFolder}/configs/params/level1.json",
-        "-out",    "${workspaceFolder}/sk.json",
-        "-pub",    "${workspaceFolder}/pk.json"
-      ],
-      "cwd": "${workspaceFolder}",
-      "buildFlags": ["-gcflags=all=-N -l"]
+      "args": ["-params", "${workspaceFolder}/configs/params/ds/level1.json", "-out", "${workspaceFolder}/sk_l1.json", "-pub", "${workspaceFolder}/pk_l1.json"],
+      "cwd": "${workspaceFolder}"
     },
     {
-      "name": "DS Sign (debug)",
+      "name": "DS Sign L1",
       "type": "go",
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceFolder}/cmd/ds/sign",
-      "args": [
-        "-sk",  "${workspaceFolder}/sk.json",
-        "-in",  "${workspaceFolder}/msg.txt",
-        "-out", "${workspaceFolder}/sig.json"
-      ],
-      "cwd": "${workspaceFolder}",
-      "buildFlags": ["-gcflags=all=-N -l"]
+      "args": ["-sk", "${workspaceFolder}/sk_l1.json", "-pk", "${workspaceFolder}/pk_l1.json", "-in", "${workspaceFolder}/msg.txt", "-out", "${workspaceFolder}/sig_l1.json"],
+      "cwd": "${workspaceFolder}"
     },
     {
-      "name": "DS Verify (debug)",
+      "name": "DS Verify L1",
       "type": "go",
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceFolder}/cmd/ds/verify",
-      "args": [
-        "-pk",  "${workspaceFolder}/pk.json",
-        "-in",  "${workspaceFolder}/msg.txt",
-        "-sig", "${workspaceFolder}/sig.json"
-      ],
-      "cwd": "${workspaceFolder}",
-      "buildFlags": ["-gcflags=all=-N -l"]
+      "args": ["-pk", "${workspaceFolder}/pk_l1.json", "-in", "${workspaceFolder}/msg.txt", "-sig", "${workspaceFolder}/sig_l1.json"],
+      "cwd": "${workspaceFolder}"
+    },
+
+    {
+      "name": "DS KeyGen L3",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/ds/keygen",
+      "args": ["-params", "${workspaceFolder}/configs/params/ds/level3.json", "-out", "${workspaceFolder}/sk_l3.json", "-pub", "${workspaceFolder}/pk_l3.json"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "DS Sign L3",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/ds/sign",
+      "args": ["-sk", "${workspaceFolder}/sk_l3.json", "-pk", "${workspaceFolder}/pk_l3.json", "-in", "${workspaceFolder}/msg.txt", "-out", "${workspaceFolder}/sig_l3.json"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "DS Verify L3",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/ds/verify",
+      "args": ["-pk", "${workspaceFolder}/pk_l3.json", "-in", "${workspaceFolder}/msg.txt", "-sig", "${workspaceFolder}/sig_l3.json"],
+      "cwd": "${workspaceFolder}"
+    },
+
+    {
+      "name": "DS KeyGen L5",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/ds/keygen",
+      "args": ["-params", "${workspaceFolder}/configs/params/ds/level5.json", "-out", "${workspaceFolder}/sk_l5.json", "-pub", "${workspaceFolder}/pk_l5.json"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "DS Sign L5",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/ds/sign",
+      "args": ["-sk", "${workspaceFolder}/sk_l5.json", "-pk", "${workspaceFolder}/pk_l5.json", "-in", "${workspaceFolder}/msg.txt", "-out", "${workspaceFolder}/sig_l5.json"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "DS Verify L5",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/ds/verify",
+      "args": ["-pk", "${workspaceFolder}/pk_l5.json", "-in", "${workspaceFolder}/msg.txt", "-sig", "${workspaceFolder}/sig_l5.json"],
+      "cwd": "${workspaceFolder}"
+    },
+
+    {
+      "name": "KEM KeyGen L1",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/kem/keygen",
+      "args": ["-params", "${workspaceFolder}/configs/params/kem/level1.json", "-out", "${workspaceFolder}/sk_kem_l1.json", "-pub", "${workspaceFolder}/pk_kem_l1.json"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "KEM Encaps L1",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/kem/encaps",
+      "args": ["-pk", "${workspaceFolder}/pk_kem_l1.json", "-params", "${workspaceFolder}/configs/params/kem/level1.json", "-out", "${workspaceFolder}/ct_l1.json", "-noise-min", "1", "-noise-max", "5"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "KEM Decaps L1",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/kem/decaps",
+      "args": ["-sk", "${workspaceFolder}/sk_kem_l1.json", "-ct", "${workspaceFolder}/ct_l1.json"],
+      "cwd": "${workspaceFolder}"
+    },
+
+    {
+      "name": "KEM KeyGen L3",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/kem/keygen",
+      "args": ["-params", "${workspaceFolder}/configs/params/kem/level3.json", "-out", "${workspaceFolder}/sk_kem_l3.json", "-pub", "${workspaceFolder}/pk_kem_l3.json"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "KEM Encaps L3",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/kem/encaps",
+      "args": ["-pk", "${workspaceFolder}/pk_kem_l3.json", "-params", "${workspaceFolder}/configs/params/kem/level3.json", "-out", "${workspaceFolder}/ct_l3.json", "-noise-min", "1", "-noise-max", "5"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "KEM Decaps L3",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/kem/decaps",
+      "args": ["-sk", "${workspaceFolder}/sk_kem_l3.json", "-ct", "${workspaceFolder}/ct_l3.json"],
+      "cwd": "${workspaceFolder}"
+    },
+
+    {
+      "name": "KEM KeyGen L5",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/kem/keygen",
+      "args": ["-params", "${workspaceFolder}/configs/params/kem/level5.json", "-out", "${workspaceFolder}/sk_kem_l5.json", "-pub", "${workspaceFolder}/pk_kem_l5.json"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "KEM Encaps L5",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/kem/encaps",
+      "args": ["-pk", "${workspaceFolder}/pk_kem_l5.json", "-params", "${workspaceFolder}/configs/params/kem/level5.json", "-out", "${workspaceFolder}/ct_l5.json", "-noise-min", "1", "-noise-max", "5"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "KEM Decaps L5",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/kem/decaps",
+      "args": ["-sk", "${workspaceFolder}/sk_kem_l5.json", "-ct", "${workspaceFolder}/ct_l5.json"],
+      "cwd": "${workspaceFolder}"
     }
   ]
 }
-
