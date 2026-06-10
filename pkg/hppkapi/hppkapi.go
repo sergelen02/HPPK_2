@@ -1,25 +1,47 @@
 package hppkapi
 
-import "crypto/sha256"
+import (
+	"encoding/json"
 
-type PublicKey []byte
-type SecretKey []byte
-type Signature []byte
+	ds "github.com/sergelen02/HPPK_2/internal/ds"
+)
 
-func KeyGen() (SecretKey, PublicKey, error) {
-	sk := []byte("demo-hppk-secret-key")
-	pk := []byte("demo-hppk-public-key")
-	return sk, pk, nil
+type Public = ds.Public
+type Secret = ds.Secret
+type Signature = ds.Signature
+
+func DecodePublicJSON(b []byte) (*Public, error) {
+	var pk Public
+	if err := json.Unmarshal(b, &pk); err != nil {
+		return nil, err
+	}
+	return &pk, nil
 }
 
-func Sign(sk SecretKey, msg []byte) (Signature, error) {
-	b := append([]byte{}, sk...)
-	b = append(b, msg...)
-
-	h := sha256.Sum256(b)
-	return h[:], nil
+func DecodeSecretJSON(b []byte) (*Secret, error) {
+	var sk Secret
+	if err := json.Unmarshal(b, &sk); err != nil {
+		return nil, err
+	}
+	return &sk, nil
 }
 
-func Verify(pk PublicKey, msg []byte, sig Signature) bool {
-	return len(pk) > 0 && len(msg) > 0 && len(sig) == sha256.Size
+func DecodeSignatureJSON(b []byte) (*Signature, error) {
+	var sig Signature
+	if err := json.Unmarshal(b, &sig); err != nil {
+		return nil, err
+	}
+	return &sig, nil
+}
+
+func EncodeSignatureJSON(sig *Signature) ([]byte, error) {
+	return json.Marshal(sig)
+}
+
+func SignWithPK(sk *Secret, pk *Public, msg []byte) (*Signature, error) {
+	return ds.SignWithPK(sk, pk, msg)
+}
+
+func Verify(pk *Public, msg []byte, sig *Signature) bool {
+	return ds.Verify(pk, msg, sig)
 }
