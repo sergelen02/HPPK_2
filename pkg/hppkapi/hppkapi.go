@@ -34,6 +34,10 @@ func DecodeSignatureJSON(b []byte) (*Signature, error) {
 	return &sig, nil
 }
 
+func EncodePublicJSON(pk *Public) ([]byte, error) {
+	return json.Marshal(pk)
+}
+
 func EncodeSignatureJSON(sig *Signature) ([]byte, error) {
 	return json.Marshal(sig)
 }
